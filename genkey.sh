@@ -1,0 +1,1 @@
+ssh-keygen -q -t rsa -N '' -f $1 <<<y 2>&1 >/dev/null
