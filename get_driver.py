@@ -6,7 +6,7 @@
 #    By: severin <severin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/01/31 19:06:28 by severin           #+#    #+#              #
-#    Updated: 2021/02/02 00:58:08 by severin          ###   ########.fr        #
+#    Updated: 2021/02/02 01:50:22 by severin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -45,10 +45,11 @@ def download_driver():
 
 
 @animate_progress(f"{ESC.BOLD}Retrieving chrome drivers{ESC.NORMAL}")
-def get_chrome_driver():
+def get_chrome_driver(headless=True):
 	try:
 		chrome_options = Options()
-		chrome_options.add_argument("--headless") 
+		if headless:
+			chrome_options.add_argument("--headless") 
 		driver = webdriver.Chrome('./chromedriver', options=chrome_options)
 		return (driver , 1)
 	except Exception as e:

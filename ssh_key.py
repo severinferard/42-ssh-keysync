@@ -6,7 +6,7 @@
 #    By: severin <severin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/01/31 20:45:42 by severin           #+#    #+#              #
-#    Updated: 2021/02/01 23:26:30 by severin          ###   ########.fr        #
+#    Updated: 2021/02/02 01:48:38 by severin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,9 +31,11 @@ def create_ssh_key(path='~/.ssh/id_rsa'):
 	system(f'sh genkey.sh {path}')
 	return (1)
 
-def get_ssh_key(path=None):
+def get_ssh_key(new=False, path=None):
 	if path is None:
 		path = f'{expanduser("~")}/.ssh/id_rsa.pub'
+	if new:
+		create_ssh_key()
 	key = get_key(path)
 	if not key:
 		print(f" ⚠️    {ESC.BOLD}Couldn't find an ssh key in {ESC.LBLUE}{path}{ESC.NORMAL}")
