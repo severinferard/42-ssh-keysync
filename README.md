@@ -15,7 +15,7 @@ source ~/.zshrc
 
 # Usage
 ```bash
-ssh-keysync ssh-keysync.py [-h] [--new] [--debug]
+ssh-keysync [-h] [--new] [--debug]
 ```
 ### Options
 * `--new`: Generate a new ssh key pair before updating it on the Intra.
