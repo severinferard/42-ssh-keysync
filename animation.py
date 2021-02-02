@@ -6,7 +6,7 @@
 #    By: severin <severin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/02/02 00:44:47 by severin           #+#    #+#              #
-#    Updated: 2021/02/02 00:44:48 by severin          ###   ########.fr        #
+#    Updated: 2021/02/02 18:46:02 by severin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,6 +28,7 @@ class TermEscapeColors():
 		self.DIM = '\033[2m'
 		self.PURPLE = '\033[35m'
 		self.LGREEN = '\033[92m'
+		self.RED = '\033[31m'
 
 
 def animate_progress(message, indentation=0):
@@ -37,7 +38,7 @@ def animate_progress(message, indentation=0):
 			t = threading.Thread(target=animate, args=(message, q, indentation))
 			t.start()
 			ret = func(*args,  **kwargs)
-			q.put(ret)
+			q.put(ret[0])
 			t.join()
 			return ret
 		return wrapper
@@ -56,7 +57,7 @@ def animate(message, q, indentation):
 		if i == len(frames):
 			i = 0
 	ret = q.get()
-	if (ret):
+	if (ret > 0):
 		sys.stdout.write(f'\r{" "* 4 * indentation} \U00002705  \n')
 	else:
 		sys.stdout.write(f'\r{" "* 4 * indentation} \U0000274C  \n')

@@ -6,13 +6,16 @@
 #    By: severin <severin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/01/31 18:48:43 by severin           #+#    #+#              #
-#    Updated: 2021/02/02 02:13:19 by severin          ###   ########.fr        #
+#    Updated: 2021/02/02 18:53:03 by severin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 from selenium.webdriver.common.keys import Keys
 import stdiomask, time, argparse
 from get_driver import download_driver, get_chrome_driver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from ssh_key import get_ssh_key
 from animation import animate_progress, TermEscapeColors
 
@@ -35,21 +38,26 @@ def get_credentials():
 def connect_to_intra(driver, login, password):
 	try:
 		driver.get('https://signin.intra.42.fr/users/sign_in')
-		login_field = driver.find_element_by_id('user_login')
+		login_field = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "user_login")))
 		password_field = driver.find_element_by_id('user_password')
 		login_field.send_keys(login)
 		password_field.send_keys(password)
 		time.sleep(0.1)
 		password_field.send_keys(Keys.RETURN)
-		return 1
+		try:
+			wrong_creds = WebDriverWait(driver, 1).until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Invalid Login or password.')]")))
+			wrong_creds = driver.find_element_by_xpath("//*[contains(text(), 'Invalid Login or password.')]")
+			return -2, None
+		except:
+			return 1, None
 	except:
-		return 0
+		return -1, None
 
 @animate_progress(f"{ESC.BOLD}Entering the new \U0001F510 ssh key {ESC.NORMAL}\U0001F510")
 def enter_key(driver, key):
 	try:
 		driver.get("https://profile.intra.42.fr/gitlab_users/new")
-		new_btn = driver.find_element_by_xpath('/html/body/div[4]/div[2]/div/div[2]/div/div[2]/div/a[1]')
+		new_btn = WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[4]/div[2]/div/div[2]/div/div[2]/div/a[1]')))
 		new_btn.click()
 		time.sleep(0.1)
 		ssh_key_field = driver.find_element_by_id('gitlab_user_public_key')
@@ -57,9 +65,9 @@ def enter_key(driver, key):
 		time.sleep(0.1)
 		submit_btn = driver.find_element_by_xpath('//*[@id="new_gitlab_user"]/button')
 		submit_btn.click()
-		return 1
+		return 1, None
 	except:
-		return 0
+		return 0, None
 
 def main():
 	args = parse_flags()
@@ -84,16 +92,20 @@ Remember, you're logging in with {ESC.BOLD}YOUR{ESC.NORMAL}{ESC.DIM} login. If i
 	print(ssh_key)
 	if args.debug:
 		print(f" \U0001F4A1    {ESC.BOLD}Running in debug mode{ESC.NORMAL}")
-	driver, ret = get_chrome_driver(not args.debug)
+	ret, driver = get_chrome_driver(not args.debug)
 	if ret < 0:
 		if (ret == -1):
-			print(f" ⚠️    {ESC.BOLD}Couldn't find chrome drivers {ESC.LBLUE}{ESC.NORMAL}")
+			print(f"      ⚠️   {ESC.BOLD}Couldn't find chrome drivers {ESC.LBLUE}{ESC.NORMAL}")
 		if (ret == -2):
-			print(f" ⚠️    {ESC.BOLD}The chrome drivers found does not match your actual version of chrome {ESC.LBLUE}{ESC.NORMAL}")
+			print(f"      ⚠️   {ESC.BOLD}The chrome drivers found does not match your actual version of chrome {ESC.LBLUE}{ESC.NORMAL}")
 		download_driver()
 		driver = get_chrome_driver(not args.debug)
-
-	connect_to_intra(driver, login, password)
+	
+	ret, _ = connect_to_intra(driver, login, password)
+	if ret == -2:
+		print(f"      \U0001F480  {ESC.BOLD}Invalid login or password{ESC.NORMAL}")
+		print(f"      \U0001F6A8  {ESC.BOLD}{ESC.RED}Aborting{ESC.NORMAL}  \U0001F6A8 ")
+		exit(1)
 	enter_key(driver, ssh_key)
 
 	print(f"{ESC.BOLD}{ESC.LGREEN}Your {ESC.NORMAL}{ESC.BOLD}\U0001F510 ssh key \U0001F510 {ESC.BOLD}{ESC.LGREEN}have been changed successfully on the {ESC.PURPLE}\U00002728Intra\U00002728{ESC.NORMAL}{ESC.BOLD}{ESC.LGREEN}!{ESC.NORMAL}")
