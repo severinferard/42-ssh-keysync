@@ -6,12 +6,12 @@
 #    By: severin <severin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/01/31 18:48:43 by severin           #+#    #+#              #
-#    Updated: 2021/02/02 18:53:03 by severin          ###   ########.fr        #
+#    Updated: 2021/02/06 23:09:32 by severin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 from selenium.webdriver.common.keys import Keys
-import stdiomask, time, argparse
+import stdiomask, time, argparse, sys
 from get_driver import download_driver, get_chrome_driver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -50,7 +50,8 @@ def connect_to_intra(driver, login, password):
 			return -2, None
 		except:
 			return 1, None
-	except:
+	except Exception as e:
+		print(e)
 		return -1, None
 
 @animate_progress(f"{ESC.BOLD}Entering the new \U0001F510 ssh key {ESC.NORMAL}\U0001F510")
@@ -100,14 +101,16 @@ Remember, you're logging in with {ESC.BOLD}YOUR{ESC.NORMAL}{ESC.DIM} login. If i
 			print(f"      ⚠️   {ESC.BOLD}The chrome drivers found does not match your actual version of chrome {ESC.LBLUE}{ESC.NORMAL}")
 		download_driver()
 		driver = get_chrome_driver(not args.debug)
-	
 	ret, _ = connect_to_intra(driver, login, password)
 	if ret == -2:
 		print(f"      \U0001F480  {ESC.BOLD}Invalid login or password{ESC.NORMAL}")
 		print(f"      \U0001F6A8  {ESC.BOLD}{ESC.RED}Aborting{ESC.NORMAL}  \U0001F6A8 ")
-		exit(1)
-	enter_key(driver, ssh_key)
-
+		sys.exit(1)
+	if ret < 0:
+		sys.exit(1)
+	ret, _ = enter_key(driver, ssh_key)
+	if ret < 0:
+		sys.exit(1)
 	print(f"{ESC.BOLD}{ESC.LGREEN}Your {ESC.NORMAL}{ESC.BOLD}\U0001F510 ssh key \U0001F510 {ESC.BOLD}{ESC.LGREEN}have been changed successfully on the {ESC.PURPLE}\U00002728Intra\U00002728{ESC.NORMAL}{ESC.BOLD}{ESC.LGREEN}!{ESC.NORMAL}")
 
 if __name__ == "__main__":
